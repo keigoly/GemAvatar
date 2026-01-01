@@ -3,13 +3,14 @@
 const KEY_ENABLED = 'isEnabled';
 const KEY_SETTINGS = 'gemSettings';
 const KEY_LANG = 'appLanguage';
+const KEY_THEME = 'appTheme';
 
 interface GemSetting {
   name: string;
   image: string;
 }
 
-// ▼▼▼ 翻訳データ (ボタン文言を追加) ▼▼▼
+// ▼▼▼ 翻訳データ ▼▼▼
 const translations: Record<string, Record<string, string>> = {
   en: {
     appName: 'GemAvatar',
@@ -22,9 +23,22 @@ const translations: Record<string, Record<string, string>> = {
     labelList: 'Registered Gems:',
     settingsTitle: 'Settings',
     langLabel: 'Language',
-    // 追加
+    themeLabel: 'Dark Mode',
+    themeSystem: 'System Default',
+    themeLight: 'Light',
+    themeDark: 'Dark',
     btnChooseFile: 'Choose File',
-    noFileChosen: 'No file chosen'
+    noFileChosen: 'No file chosen',
+    // ▼ 追加: その他・問い合わせ ▼
+    otherLabel: 'Others / Contact',
+    linkBugTitle: 'Bug Report',
+    linkBugDesc: 'Report bugs or request features',
+    linkPrivacyTitle: 'Privacy Policy',
+    linkPrivacyDesc: 'Handling of personal information',
+    linkSourceTitle: 'Source Code',
+    linkSourceDesc: 'View code on GitHub',
+    linkSupportTitle: 'Support Developer',
+    linkSupportDesc: 'Amazon Wishlist'
   },
   ja: {
     appName: 'GemAvatar',
@@ -37,13 +51,26 @@ const translations: Record<string, Record<string, string>> = {
     labelList: '登録済み:',
     settingsTitle: '設定',
     langLabel: '言語設定',
-    // 追加
+    themeLabel: 'ダークモード',
+    themeSystem: 'デバイスの設定に合わせる',
+    themeLight: 'ライト',
+    themeDark: 'ダーク',
     btnChooseFile: 'ファイルを選択',
-    noFileChosen: '選択されていません'
+    noFileChosen: '選択されていません',
+    // ▼ 追加: その他・問い合わせ ▼
+    otherLabel: 'その他・問い合わせ',
+    linkBugTitle: '不具合の報告',
+    linkBugDesc: 'バグ報告や機能要望はこちら',
+    linkPrivacyTitle: 'プライバシーポリシー',
+    linkPrivacyDesc: '個人情報の取り扱いについて',
+    linkSourceTitle: 'ソースコード',
+    linkSourceDesc: 'GitHubでコードを見る',
+    linkSupportTitle: '開発者を支援する',
+    linkSupportDesc: 'Amazon 欲しいものリスト'
   }
 };
 
-// DOM要素の取得
+// DOM要素
 const viewMain = document.getElementById('view-main') as HTMLElement;
 const viewSettings = document.getElementById('view-settings') as HTMLElement;
 const btnOpenSettings = document.getElementById('btn-open-settings') as HTMLButtonElement;
@@ -55,31 +82,46 @@ const nameInput = document.getElementById('gem-name-input') as HTMLInputElement;
 const imageInput = document.getElementById('gem-image-input') as HTMLInputElement;
 const addBtn = document.getElementById('add-btn') as HTMLButtonElement;
 const gemList = document.getElementById('gem-list') as HTMLUListElement;
-
-// 追加: ファイル名表示用の要素
 const fileNameDisplay = document.getElementById('file-name-display') as HTMLSpanElement;
 
 const langRadios = document.querySelectorAll('input[name="lang"]');
+const themeRadios = document.querySelectorAll('input[name="theme"]');
+const accordions = document.querySelectorAll('.accordion');
+
 let currentLang = 'en';
 
-// --- 言語・翻訳処理 ---
+// --- アコーディオンの制御 ---
+accordions.forEach(acc => {
+  const header = acc.querySelector('.accordion-header');
+  header?.addEventListener('click', () => {
+    // 開閉トグル (他を閉じる挙動にする場合はここで制御可能)
+    acc.classList.toggle('active');
+  });
+});
 
+// --- テーマ適用 ---
+const applyTheme = (theme: string) => {
+  document.body.classList.remove('dark-mode');
+  
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+  } else if (theme === 'system') {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.body.classList.add('dark-mode');
+    }
+  }
+};
+
+// --- 言語・翻訳処理 ---
 const updateTexts = () => {
   const t = translations[currentLang];
-  
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    // ファイル名が表示されている時は、翻訳で上書きしないようにする
     if (el.id === 'file-name-display' && !el.hasAttribute('data-i18n')) return;
-
     const key = el.getAttribute('data-i18n');
-    if (key && t[key]) {
-      el.textContent = t[key];
-    }
+    if (key && t[key]) el.textContent = t[key];
   });
 
-  if (t.placeholderTarget) {
-    nameInput.placeholder = t.placeholderTarget;
-  }
+  if (t.placeholderTarget) nameInput.placeholder = t.placeholderTarget;
   updateStatusText(toggleSwitch.checked);
 };
 
@@ -87,29 +129,29 @@ const updateStatusText = (isEnabled: boolean) => {
   const t = translations[currentLang];
   statusText.textContent = isEnabled ? t.statusOn : t.statusOff;
   statusText.style.color = isEnabled ? '#1a73e8' : '#5f6368';
+  if (document.body.classList.contains('dark-mode') && !isEnabled) {
+    statusText.style.color = '#9aa0a6';
+  }
 };
 
-// --- ファイル入力の表示制御 ---
+// --- イベントリスナー ---
 imageInput.addEventListener('change', () => {
   if (imageInput.files && imageInput.files.length > 0) {
-    // ファイルが選ばれたら、その名前を表示し、翻訳対象から外す
     fileNameDisplay.textContent = imageInput.files[0].name;
     fileNameDisplay.removeAttribute('data-i18n');
     checkInputState();
   } else {
-    // キャンセルされたら、デフォルト文言に戻す
     resetFileInputDisplay();
     checkInputState();
   }
 });
 
 const resetFileInputDisplay = () => {
-  imageInput.value = ''; // 実際のinputをクリア
+  imageInput.value = '';
   fileNameDisplay.setAttribute('data-i18n', 'noFileChosen');
   fileNameDisplay.textContent = translations[currentLang].noFileChosen;
 };
 
-// --- 画面遷移 ---
 btnOpenSettings.addEventListener('click', () => {
   viewMain.classList.add('hidden');
   viewSettings.classList.remove('hidden');
@@ -119,7 +161,7 @@ btnBack.addEventListener('click', () => {
   viewMain.classList.remove('hidden');
 });
 
-// --- 言語切り替え ---
+// 言語切り替え
 langRadios.forEach(radio => {
   radio.addEventListener('change', async (e) => {
     const target = e.target as HTMLInputElement;
@@ -131,7 +173,20 @@ langRadios.forEach(radio => {
   });
 });
 
-// --- ロジック ---
+// テーマ切り替え
+themeRadios.forEach(radio => {
+  radio.addEventListener('change', async (e) => {
+    const target = e.target as HTMLInputElement;
+    if (target.checked) {
+      const theme = target.value;
+      await chrome.storage.local.set({ [KEY_THEME]: theme });
+      applyTheme(theme);
+      updateStatusText(toggleSwitch.checked);
+    }
+  });
+});
+
+// --- データ処理 ---
 const renderGemList = (settings: GemSetting[]) => {
   gemList.innerHTML = '';
   settings.forEach(setting => {
@@ -146,7 +201,6 @@ const renderGemList = (settings: GemSetting[]) => {
     delBtn.textContent = '×';
     delBtn.className = 'delete-btn';
     delBtn.onclick = () => removeGem(setting.name);
-
     li.appendChild(img);
     li.appendChild(span);
     li.appendChild(delBtn);
@@ -177,26 +231,19 @@ const reloadTabs = async () => {
 const addGem = async () => {
   const name = nameInput.value.trim();
   const file = imageInput.files ? imageInput.files[0] : null;
-
   if (!name || !file) return;
-
   try {
     const base64Image = await convertFileToBase64(file);
     const data = await chrome.storage.local.get(KEY_SETTINGS);
     const currentSettings: GemSetting[] = data[KEY_SETTINGS] ?? [];
-
     const newSettings = currentSettings.filter(s => s.name !== name);
     newSettings.push({ name: name, image: base64Image });
-
     await chrome.storage.local.set({ [KEY_SETTINGS]: newSettings });
     renderGemList(newSettings);
     reloadTabs();
-
-    // 入力リセット
     nameInput.value = '';
     resetFileInputDisplay();
     checkInputState();
-
   } catch (e) {
     console.error(e);
     alert("Error loading image.");
@@ -213,19 +260,23 @@ const removeGem = async (nameToRemove: string) => {
 };
 
 const init = async () => {
-  const data = await chrome.storage.local.get([KEY_ENABLED, KEY_SETTINGS, KEY_LANG]);
+  const data = await chrome.storage.local.get([KEY_ENABLED, KEY_SETTINGS, KEY_LANG, KEY_THEME]);
   
+  // 言語初期化
   if (data[KEY_LANG]) {
     currentLang = data[KEY_LANG];
   } else {
     const browserLang = navigator.language;
-    if (browserLang.startsWith('ja')) {
-      currentLang = 'ja';
-    }
+    if (browserLang.startsWith('ja')) currentLang = 'ja';
   }
+  const langRadio = document.querySelector(`input[name="lang"][value="${currentLang}"]`) as HTMLInputElement;
+  if (langRadio) langRadio.checked = true;
 
-  const radioToSelect = document.querySelector(`input[name="lang"][value="${currentLang}"]`) as HTMLInputElement;
-  if (radioToSelect) radioToSelect.checked = true;
+  // テーマ初期化
+  const currentTheme = data[KEY_THEME] ?? 'system';
+  applyTheme(currentTheme);
+  const themeRadio = document.querySelector(`input[name="theme"][value="${currentTheme}"]`) as HTMLInputElement;
+  if (themeRadio) themeRadio.checked = true;
 
   updateTexts();
   
@@ -243,6 +294,5 @@ toggleSwitch.addEventListener('change', async (e) => {
 
 addBtn.addEventListener('click', addGem);
 nameInput.addEventListener('input', checkInputState);
-// changeイベントは上で定義済みなのでここでは不要
 
 init();

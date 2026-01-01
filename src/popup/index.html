@@ -40,6 +40,7 @@
             <label for="gem-image-input" class="custom-file-btn" data-i18n="btnChooseFile">Choose File</label>
             <span id="file-name-display" class="file-name" data-i18n="noFileChosen">No file chosen</span>
           </div>
+
           <button id="add-btn" disabled data-i18n="btnAdd">Add Gem Settings</button>
         </div>
 
@@ -50,7 +51,7 @@
       </main>
 
       <footer>
-        <p>v1.3.1</p>
+        <p>v1.5.0</p>
       </footer>
     </div>
 
@@ -67,18 +68,108 @@
       </header>
 
       <main class="settings-content">
-        <div class="setting-item">
-          <label data-i18n="langLabel">Language</label>
-          <div class="lang-selector">
-            <label class="radio-label">
-              <input type="radio" name="lang" value="en"> English
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="lang" value="ja"> 日本語
-            </label>
+        
+        <div class="accordion">
+          <div class="accordion-header">
+            <span data-i18n="langLabel">Language</span>
+            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="lang-selector">
+              <label class="radio-label">
+                <input type="radio" name="lang" value="en"> English
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="lang" value="ja"> 日本語
+              </label>
+            </div>
           </div>
         </div>
-      </main>
+
+        <div class="accordion">
+          <div class="accordion-header">
+            <span data-i18n="themeLabel">Dark Mode</span>
+            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="lang-selector">
+              <label class="radio-label">
+                <input type="radio" name="theme" value="system"> <span data-i18n="themeSystem">System Default</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="theme" value="light"> <span data-i18n="themeLight">Light</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="theme" value="dark"> <span data-i18n="themeDark">Dark</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion">
+          <div class="accordion-header">
+            <span data-i18n="otherLabel">Others / Contact</span>
+            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="link-list">
+              
+              <a href="#" target="_blank" class="link-item">
+                <div class="link-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="link-text">
+                  <div class="link-title" data-i18n="linkBugTitle">Bug Report</div>
+                  <div class="link-desc" data-i18n="linkBugDesc">Report bugs or request features</div>
+                </div>
+                <div class="link-arrow">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+              </a>
+
+              <a href="#" target="_blank" class="link-item">
+                <div class="link-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="link-text">
+                  <div class="link-title" data-i18n="linkPrivacyTitle">Privacy Policy</div>
+                  <div class="link-desc" data-i18n="linkPrivacyDesc">About handling of personal information</div>
+                </div>
+                <div class="link-arrow">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+              </a>
+
+              <a href="#" target="_blank" class="link-item">
+                <div class="link-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <div class="link-text">
+                  <div class="link-title" data-i18n="linkSourceTitle">Source Code</div>
+                  <div class="link-desc" data-i18n="linkSourceDesc">View code on GitHub</div>
+                </div>
+                <div class="link-arrow">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+              </a>
+
+              <a href="#" target="_blank" class="link-item">
+                <div class="link-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                </div>
+                <div class="link-text">
+                  <div class="link-title" data-i18n="linkSupportTitle">Support Developer</div>
+                  <div class="link-desc" data-i18n="linkSupportDesc">Amazon Wishlist</div>
+                </div>
+                <div class="link-arrow">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+              </a>
+
+            </div>
+          </div>
+        </div>
+        </main>
     </div>
 
   </div>
