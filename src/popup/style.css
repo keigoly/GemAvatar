@@ -1,6 +1,6 @@
 body {
-  width: 280px; /* 横幅を少し広げました */
-  height: 300px; /* リストが入るので縦も広げました */
+  width: 300px; /* 横幅をさらに少し広げました */
+  height: 420px; /* ファイル選択が増えたので縦も広げました */
   margin: 0;
   font-family: 'Segoe UI', Roboto, sans-serif;
   background-color: #f8f9fa;
@@ -24,25 +24,13 @@ header {
   padding-bottom: 8px;
 }
 
-header h1 {
-  margin: 0;
-  font-size: 16px;
-  color: #1a73e8;
-}
+header h1 { margin: 0; font-size: 16px; color: #1a73e8; }
 
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#status-text {
-  font-size: 12px;
-  font-weight: bold;
-}
+.status-row { display: flex; align-items: center; gap: 8px; }
+#status-text { font-size: 12px; font-weight: bold; }
 
 /* 入力エリア */
-.input-group label, .list-container label {
+.input-group label {
   font-size: 12px;
   font-weight: 600;
   color: #5f6368;
@@ -50,48 +38,74 @@ header h1 {
   margin-bottom: 4px;
 }
 
-.input-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
 input[type="text"] {
-  flex-grow: 1;
-  padding: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 12px;
+  margin-bottom: 4px;
+}
+
+input[type="file"] {
+  font-size: 11px;
+  width: 100%;
+}
+
+.file-input-row {
+  margin-bottom: 12px;
+  background: #fff;
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 button#add-btn {
-  padding: 6px 12px;
+  width: 100%;
+  padding: 8px;
   background-color: #1a73e8;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: bold;
 }
 
-button#add-btn:hover {
+button#add-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button#add-btn:hover:not(:disabled) {
   background-color: #1558b0;
 }
 
 /* リスト表示 */
 .list-container {
+  margin-top: 16px;
   flex-grow: 1;
   overflow-y: auto;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-container label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f6368;
+  margin-bottom: 4px;
 }
 
 ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  flex-grow: 1;
 }
 
 li.gem-item {
@@ -103,8 +117,20 @@ li.gem-item {
   font-size: 13px;
 }
 
-li.gem-item:last-child {
-  border-bottom: none;
+li.gem-item img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+  border: 1px solid #eee;
+}
+
+.item-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .delete-btn {
@@ -115,23 +141,12 @@ li.gem-item:last-child {
   font-size: 16px;
   padding: 0 4px;
 }
+.delete-btn:hover { color: #d93025; }
 
-.delete-btn:hover {
-  color: #d93025;
-}
+footer { margin-top: 8px; text-align: center; }
+footer p { margin: 0; font-size: 10px; color: #9aa0a6; }
 
-footer {
-  margin-top: 8px;
-  text-align: center;
-}
-
-footer p {
-  margin: 0;
-  font-size: 10px;
-  color: #9aa0a6;
-}
-
-/* Toggle Switch (変更なし) */
+/* Switch CSS (省略・変更なし) */
 .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }

@@ -21,22 +21,26 @@
     
     <main>
       <div class="input-group">
-        <label>Target Gem Name:</label>
-        <div class="input-row">
-          <input type="text" id="gem-name-input" placeholder="e.g. 新規 アプリ開発">
-          <button id="add-btn">Add</button>
+        <label>1. Target Gem Name:</label>
+        <input type="text" id="gem-name-input" placeholder="e.g. 新規 アプリ開発">
+        
+        <label style="margin-top: 10px;">2. Select Icon Image:</label>
+        <div class="file-input-row">
+          <input type="file" id="gem-image-input" accept="image/*">
         </div>
+
+        <button id="add-btn" disabled>Add Gem Settings</button>
       </div>
 
       <div class="list-container">
-        <label>Active List:</label>
+        <label>Registered Gems:</label>
         <ul id="gem-list">
           </ul>
       </div>
     </main>
 
     <footer>
-      <p>v1.1.0 - Dynamic Config</p>
+      <p>v1.2.0 - Custom Uploads</p>
     </footer>
   </div>
   <script type="module" src="main.ts"></script>
