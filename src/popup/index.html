@@ -29,6 +29,13 @@
       </header>
       
       <main>
+        <div class="auto-fetch-section">
+          <button id="autoFetchBtn" class="auto-fetch-btn" data-i18n="autoFetch">Auto-fetch My Gems</button>
+          <span id="fetchStatus" class="fetch-status"></span>
+        </div>
+        <div class="manual-separator">
+          <span data-i18n="manualAdd">or add manually</span>
+        </div>
         <div class="input-group">
           <label data-i18n="labelTarget">1. Target Gem Name:</label>
           <input type="text" id="gem-name-input" placeholder="e.g. New App Dev">
@@ -90,20 +97,67 @@
 
         <div class="accordion">
           <div class="accordion-header">
-            <span data-i18n="themeLabel">Dark Mode</span>
+            <div class="accordion-header-left">
+              <span data-i18n="designLabel">Design</span>
+              <span id="design-sublabel" class="accordion-sublabel"></span>
+            </div>
             <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="accordion-body">
-            <div class="lang-selector">
-              <label class="radio-label">
-                <input type="radio" name="theme" value="system"> <span data-i18n="themeSystem">System Default</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="theme" value="light"> <span data-i18n="themeLight">Light</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="theme" value="dark"> <span data-i18n="themeDark">Dark</span>
-              </label>
+            <div class="design-section">
+              <div class="design-group">
+                <label class="design-label" data-i18n="fontSizeLabel">Font Size</label>
+                <div class="font-size-slider" id="font-size-slider">
+                  <button class="slider-dot" data-size="13">13</button>
+                  <button class="slider-dot" data-size="14">14</button>
+                  <button class="slider-dot selected" data-size="15">15</button>
+                  <button class="slider-dot" data-size="16">16</button>
+                  <button class="slider-dot" data-size="18">18</button>
+                </div>
+              </div>
+              <div class="design-group">
+                <label class="design-label" data-i18n="bgLabel">Background</label>
+                <div class="bg-picker" id="bg-picker">
+                  <button class="bg-option selected" data-bg="light" title="Light">
+                    <span class="bg-swatch" style="background:#f8f9fa;"></span>
+                    <span class="bg-name" data-i18n="bgLight">Light</span>
+                    <span class="bg-check">&#10003;</span>
+                  </button>
+                  <button class="bg-option" data-bg="dark" title="Dark">
+                    <span class="bg-swatch" style="background:#202124;"></span>
+                    <span class="bg-name" data-i18n="bgDark">Dark</span>
+                    <span class="bg-check">&#10003;</span>
+                  </button>
+                  <button class="bg-option" data-bg="blue" title="Blue">
+                    <span class="bg-swatch" style="background:#273340;"></span>
+                    <span class="bg-name" data-i18n="bgBlue">Blue</span>
+                    <span class="bg-check">&#10003;</span>
+                  </button>
+                  <button class="bg-option" data-bg="black" title="Black">
+                    <span class="bg-swatch" style="background:#000000;"></span>
+                    <span class="bg-name" data-i18n="bgBlack">Black</span>
+                    <span class="bg-check">&#10003;</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion">
+          <div class="accordion-header">
+            <span data-i18n="storageLabel">Storage</span>
+            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="storage-section">
+              <p class="storage-info" data-i18n="storageInfo">Export, import, or reset your settings.</p>
+              <div class="storage-actions">
+                <button id="btn-export" class="storage-btn export-btn" data-i18n="exportBtn">Export</button>
+                <button id="btn-import" class="storage-btn import-btn" data-i18n="importBtn">Import</button>
+                <button id="btn-reset" class="storage-btn reset-btn" data-i18n="resetBtn">Reset</button>
+              </div>
+              <input type="file" id="import-file-input" accept=".json" class="hidden">
             </div>
           </div>
         </div>
