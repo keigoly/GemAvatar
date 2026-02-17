@@ -38,6 +38,18 @@ const translations: Record<string, Record<string, string>> = {
     importBtn: 'Import',
     resetBtn: 'Reset',
     confirmReset: 'Are you sure you want to reset all settings? This cannot be undone.',
+    importLabel: 'Import Settings',
+    exportLabel: 'Export Settings',
+    resetLabel: 'Reset Settings',
+    resetDesc: 'Restore settings to defaults.',
+    clearLabel: 'Clear Storage',
+    clearDesc: 'Delete all data permanently.',
+    clearBtn: 'Clear',
+    confirmClear: 'Are you sure you want to clear all storage? All data will be deleted and this cannot be undone.',
+    storageCurrent: 'Current',
+    storageTotal: 'Total',
+    storageSettingsSize: 'Settings',
+    storageOther: 'Other',
     importSuccess: 'Settings imported successfully.',
     importFailed: 'Failed to import settings.',
     btnChooseFile: 'Choose File',
@@ -51,6 +63,8 @@ const translations: Record<string, Record<string, string>> = {
     linkSourceDesc: 'View code on GitHub',
     linkSupportTitle: 'Support Developer',
     linkSupportDesc: 'Amazon Wishlist',
+    linkOfficialTitle: 'Official Site',
+    linkOfficialDesc: 'keigoly.jp',
     btnReload: 'Update',
     autoFetch: 'Auto-fetch My Gems',
     manualAdd: 'or add manually',
@@ -60,7 +74,9 @@ const translations: Record<string, Record<string, string>> = {
     addedItems: 'Added {count} item(s)',
     skippedItems: '{count} skipped',
     allRegistered: 'All already registered',
-    errorOccurred: 'Error occurred'
+    errorOccurred: 'Error occurred',
+    setIconOption: 'Set Icon',
+    deleteOption: 'Delete'
   },
   ja: {
     appName: 'GemAvatar',
@@ -86,6 +102,18 @@ const translations: Record<string, Record<string, string>> = {
     importBtn: 'インポート',
     resetBtn: 'リセット',
     confirmReset: 'すべての設定をリセットしますか？この操作は元に戻せません。',
+    importLabel: '設定をインポート',
+    exportLabel: '設定をエクスポート',
+    resetLabel: '設定をリセット',
+    resetDesc: '設定を初期値に戻します。',
+    clearLabel: 'ストレージを初期化',
+    clearDesc: 'データを全て消去します。',
+    clearBtn: '初期化',
+    confirmClear: 'ストレージを初期化しますか？すべてのデータが削除され、元に戻すことはできません。',
+    storageCurrent: '現在',
+    storageTotal: '全体',
+    storageSettingsSize: '設定',
+    storageOther: 'その他',
     importSuccess: '設定をインポートしました。',
     importFailed: '設定のインポートに失敗しました。',
     btnChooseFile: 'ファイルを選択',
@@ -99,6 +127,8 @@ const translations: Record<string, Record<string, string>> = {
     linkSourceDesc: 'GitHubでコードを見る',
     linkSupportTitle: '開発者を支援する',
     linkSupportDesc: 'Amazon 欲しいものリスト',
+    linkOfficialTitle: 'オフィシャルサイト',
+    linkOfficialDesc: 'keigoly.jp',
     btnReload: '更新',
     autoFetch: 'マイGemを自動取得',
     manualAdd: 'または手動で追加',
@@ -108,7 +138,9 @@ const translations: Record<string, Record<string, string>> = {
     addedItems: '{count}件追加しました',
     skippedItems: '{count}件スキップ',
     allRegistered: 'すべて登録済みです',
-    errorOccurred: 'エラーが発生しました'
+    errorOccurred: 'エラーが発生しました',
+    setIconOption: 'アイコンを設定',
+    deleteOption: '削除'
   }
 };
 
@@ -128,6 +160,9 @@ const fileNameDisplay = document.getElementById('file-name-display') as HTMLSpan
 const btnReload = document.getElementById('btn-reload') as HTMLButtonElement;
 const autoFetchBtn = document.getElementById('autoFetchBtn') as HTMLButtonElement;
 const fetchStatus = document.getElementById('fetchStatus') as HTMLSpanElement;
+const gemIconInput = document.getElementById('gem-icon-change-input') as HTMLInputElement;
+
+let pendingIconGemName: string | null = null;
 
 // デザインセクション
 const designSublabel = document.getElementById('design-sublabel') as HTMLSpanElement;
@@ -139,6 +174,13 @@ const btnExport = document.getElementById('btn-export') as HTMLButtonElement;
 const btnImport = document.getElementById('btn-import') as HTMLButtonElement;
 const btnReset = document.getElementById('btn-reset') as HTMLButtonElement;
 const importFileInput = document.getElementById('import-file-input') as HTMLInputElement;
+const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
+const storageSublabel = document.getElementById('storage-sublabel') as HTMLSpanElement;
+const storageBarSettings = document.getElementById('storage-bar-settings') as HTMLElement;
+const storageBarOther = document.getElementById('storage-bar-other') as HTMLElement;
+const storageTotalEl = document.getElementById('storage-total') as HTMLSpanElement;
+const storageSettingsSizeEl = document.getElementById('storage-settings-size') as HTMLSpanElement;
+const storageOtherSizeEl = document.getElementById('storage-other-size') as HTMLSpanElement;
 
 const langRadios = document.querySelectorAll('input[name="lang"]');
 const accordions = document.querySelectorAll('.accordion');
@@ -239,6 +281,7 @@ langRadios.forEach(radio => {
       currentLang = target.value;
       await chrome.storage.local.set({ [KEY_LANG]: currentLang });
       updateTexts();
+      await updateStorageInfo();
     }
   });
 });
@@ -263,6 +306,43 @@ bgPicker.addEventListener('click', async (e) => {
 });
 
 // --- ストレージ機能 ---
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return bytes + ' B';
+  const kb = bytes / 1024;
+  if (kb < 1024) return kb.toFixed(1) + ' KB';
+  const mb = kb / 1024;
+  return mb.toFixed(1) + ' MB';
+};
+
+const updateStorageInfo = async () => {
+  try {
+    const t = translations[currentLang];
+    const totalBytes = await chrome.storage.local.getBytesInUse(null);
+    const settingsBytes = await chrome.storage.local.getBytesInUse(EXPORT_KEYS);
+    const otherBytes = totalBytes - settingsBytes;
+
+    storageSublabel.textContent = `${t.storageCurrent}: ${formatBytes(totalBytes)}`;
+
+    const settingsPercent = totalBytes > 0 ? (settingsBytes / totalBytes) * 100 : 0;
+    const otherPercent = totalBytes > 0 ? (otherBytes / totalBytes) * 100 : 0;
+    storageBarSettings.style.width = settingsPercent + '%';
+    storageBarOther.style.width = otherPercent + '%';
+
+    storageTotalEl.textContent = `${t.storageTotal}: ${formatBytes(totalBytes)}`;
+    storageSettingsSizeEl.textContent = `${t.storageSettingsSize}: ${formatBytes(settingsBytes)}`;
+    storageOtherSizeEl.textContent = `${t.storageOther}: ${formatBytes(otherBytes)}`;
+  } catch (e) {
+    console.warn('[GemAvatar] Failed to get storage info:', e);
+  }
+};
+
+const clearStorage = async () => {
+  const t = translations[currentLang];
+  if (!confirm(t.confirmClear)) return;
+  await chrome.storage.local.clear();
+  await init();
+};
+
 const exportSettings = async () => {
   const data = await chrome.storage.local.get(EXPORT_KEYS);
   const json = JSON.stringify(data, null, 2);
@@ -276,25 +356,22 @@ const exportSettings = async () => {
   URL.revokeObjectURL(url);
 };
 
-const importSettings = (file: File) => {
-  const reader = new FileReader();
-  reader.onload = async () => {
-    try {
-      const parsed = JSON.parse(reader.result as string);
-      const filtered: Record<string, unknown> = {};
-      for (const key of EXPORT_KEYS) {
-        if (key in parsed) {
-          filtered[key] = parsed[key];
-        }
+const importSettings = async (file: File) => {
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const filtered: Record<string, unknown> = {};
+    for (const key of EXPORT_KEYS) {
+      if (key in parsed) {
+        filtered[key] = parsed[key];
       }
-      await chrome.storage.local.set(filtered);
-      await init();
-      alert(translations[currentLang].importSuccess);
-    } catch {
-      alert(translations[currentLang].importFailed);
     }
-  };
-  reader.readAsText(file);
+    await chrome.storage.local.set(filtered);
+    await init();
+    alert(translations[currentLang].importSuccess);
+  } catch {
+    alert(translations[currentLang].importFailed);
+  }
 };
 
 const resetSettings = async () => {
@@ -306,20 +383,29 @@ const resetSettings = async () => {
 
 btnExport.addEventListener('click', exportSettings);
 btnImport.addEventListener('click', () => importFileInput.click());
-importFileInput.addEventListener('change', () => {
+importFileInput.addEventListener('change', async () => {
   if (importFileInput.files && importFileInput.files.length > 0) {
-    importSettings(importFileInput.files[0]);
+    await importSettings(importFileInput.files[0]);
     importFileInput.value = '';
   }
 });
 btnReset.addEventListener('click', resetSettings);
+btnClear.addEventListener('click', clearStorage);
+
+// --- メニュー制御 ---
+const closeAllMenus = () => {
+  document.querySelectorAll('.item-menu').forEach(menu => menu.classList.add('hidden'));
+};
+document.addEventListener('click', closeAllMenus);
 
 // --- ロジック ---
 const renderGemList = (settings: GemSetting[]) => {
+  const t = translations[currentLang];
   gemList.innerHTML = '';
   settings.forEach(setting => {
     const li = document.createElement('li');
     li.className = 'gem-item';
+
     if (setting.image) {
       const img = document.createElement('img');
       img.src = setting.image;
@@ -330,15 +416,53 @@ const renderGemList = (settings: GemSetting[]) => {
       placeholder.textContent = setting.name.charAt(0);
       li.appendChild(placeholder);
     }
+
     const span = document.createElement('span');
     span.className = 'item-name';
     span.textContent = setting.name;
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '×';
-    delBtn.className = 'delete-btn';
-    delBtn.onclick = () => removeGem(setting.name);
     li.appendChild(span);
-    li.appendChild(delBtn);
+
+    // Menu wrapper
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'menu-wrapper';
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.textContent = '\u22EE';
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !itemMenu.classList.contains('hidden');
+      closeAllMenus();
+      if (!isOpen) itemMenu.classList.remove('hidden');
+    });
+
+    const itemMenu = document.createElement('div');
+    itemMenu.className = 'item-menu hidden';
+
+    const setIconBtn = document.createElement('button');
+    setIconBtn.className = 'menu-option';
+    setIconBtn.textContent = t.setIconOption;
+    setIconBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAllMenus();
+      handleSetIcon(setting.name);
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'menu-option delete-option';
+    deleteBtn.textContent = t.deleteOption;
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAllMenus();
+      removeGem(setting.name);
+    });
+
+    itemMenu.appendChild(setIconBtn);
+    itemMenu.appendChild(deleteBtn);
+    menuWrapper.appendChild(menuBtn);
+    menuWrapper.appendChild(itemMenu);
+    li.appendChild(menuWrapper);
+
     gemList.appendChild(li);
   });
 };
@@ -378,6 +502,7 @@ const addGem = async () => {
     nameInput.value = '';
     resetFileInputDisplay();
     checkInputState();
+    await updateStorageInfo();
   } catch (e) {
     console.error(e);
     alert("Error loading image.");
@@ -390,7 +515,33 @@ const removeGem = async (nameToRemove: string) => {
   const newSettings = currentSettings.filter(s => s.name !== nameToRemove);
   await chrome.storage.local.set({ [KEY_SETTINGS]: newSettings });
   renderGemList(newSettings);
+  await updateStorageInfo();
 };
+
+const handleSetIcon = (gemName: string) => {
+  pendingIconGemName = gemName;
+  gemIconInput.value = '';
+  gemIconInput.click();
+};
+
+gemIconInput.addEventListener('change', async () => {
+  if (!pendingIconGemName || !gemIconInput.files || gemIconInput.files.length === 0) return;
+  try {
+    const base64Image = await convertFileToBase64(gemIconInput.files[0]);
+    const data = await chrome.storage.local.get(KEY_SETTINGS);
+    const currentSettings: GemSetting[] = data[KEY_SETTINGS] ?? [];
+    const target = currentSettings.find(s => s.name === pendingIconGemName);
+    if (target) {
+      target.image = base64Image;
+      await chrome.storage.local.set({ [KEY_SETTINGS]: currentSettings });
+      renderGemList(currentSettings);
+      await updateStorageInfo();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  pendingIconGemName = null;
+});
 
 const init = async () => {
   const data = await chrome.storage.local.get([KEY_ENABLED, KEY_SETTINGS, KEY_LANG, KEY_FONTSIZE, KEY_BGMODE]);
@@ -414,6 +565,7 @@ const init = async () => {
   toggleSwitch.checked = data[KEY_ENABLED] ?? true;
   updateStatusText(toggleSwitch.checked);
   renderGemList(data[KEY_SETTINGS] ?? []);
+  await updateStorageInfo();
 };
 
 toggleSwitch.addEventListener('change', async (e) => {
@@ -425,6 +577,7 @@ toggleSwitch.addEventListener('change', async (e) => {
 
 addBtn.addEventListener('click', addGem);
 nameInput.addEventListener('input', checkInputState);
+btnReload.addEventListener('click', reloadTabs);
 
 const handleAutoFetch = async () => {
   const t = translations[currentLang];

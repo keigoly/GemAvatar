@@ -16,6 +16,8 @@ const getImageUrl = (path: string) => {
   }
 };
 
+const normalizeText = (s: string): string => s.replace(/\s+/g, ' ').trim();
+
 const cleanupOldMess = (targetElement: HTMLElement) => {
   const oldImages = targetElement.querySelectorAll('img[src*="chrome-extension"]');
   oldImages.forEach(img => img.remove());
@@ -25,6 +27,7 @@ const cleanupOldMess = (targetElement: HTMLElement) => {
 };
 
 const applyAvatarStyle = (element: HTMLElement, imageOrPath: string) => {
+  if (!imageOrPath) return;
   cleanupOldMess(element);
   const bgUrl = imageOrPath.startsWith('data:') ? imageOrPath : getImageUrl(imageOrPath);
 
@@ -32,13 +35,13 @@ const applyAvatarStyle = (element: HTMLElement, imageOrPath: string) => {
   element.style.backgroundColor = 'transparent';
   element.style.boxShadow = 'none';
   element.style.border = 'none';
-  
+
   element.style.backgroundImage = `url("${bgUrl}")`;
   element.style.backgroundSize = 'cover';
   element.style.backgroundPosition = 'center';
   element.style.backgroundRepeat = 'no-repeat';
   element.style.borderRadius = '50%';
-  
+
   element.style.minWidth = '28px';
   element.style.minHeight = '28px';
   element.style.display = 'inline-block';
@@ -46,76 +49,96 @@ const applyAvatarStyle = (element: HTMLElement, imageOrPath: string) => {
   element.setAttribute(PROCESSED_ATTR, 'true');
 };
 
+const isProcessed = (el: HTMLElement): boolean => {
+  if (el.getAttribute(PROCESSED_ATTR) === 'true') {
+    const hasGarbage = el.querySelector('img[src*="chrome-extension"]');
+    if (!hasGarbage) return true;
+  }
+  return false;
+};
+
+/** 正規化済みテキストでGem名を検索 */
+const findGemInText = (text: string, gems: GemSetting[]): GemSetting | undefined => {
+  const normalized = normalizeText(text);
+  return gems.find(s => normalized.includes(normalizeText(s.name)));
+};
+
 const performReplacement = () => {
   if (gemSettings.length === 0) return;
 
-  // 1. 現在のページタイトル（一番上の大きな文字）を取得
-  // これが「新規 アプリ開発」なら、下にある「最近」リストもそのGemのものだと判断できる
+  const gemsWithImage = gemSettings.filter(s => s.image);
+  if (gemsWithImage.length === 0) return;
+
   const pageTitleElement = document.querySelector('h1, .gds-headline, [role="heading"]');
-  const pageTitle = pageTitleElement ? pageTitleElement.textContent?.trim() : '';
+  const pageTitle = pageTitleElement ? normalizeText(pageTitleElement.textContent || '') : '';
 
-  const candidates = document.querySelectorAll('.bot-logo-text');
-
-  candidates.forEach(candidate => {
+  // --- Pass 1: .bot-logo-text ベースの置換 ---
+  document.querySelectorAll('.bot-logo-text').forEach(candidate => {
     const el = candidate as HTMLElement;
-    
-    // 処理済みチェック（ゴミ掃除含む）
-    if (el.getAttribute(PROCESSED_ATTR) === 'true') {
-        const hasGarbage = el.querySelector('img[src*="chrome-extension"]');
-        if (!hasGarbage) return;
-    }
+    if (isProcessed(el)) return;
 
     const iconText = el.textContent?.trim();
     if (!iconText) return;
 
-    // 頭文字が一致するGem設定を探す
-    const targetGem = gemSettings.find(setting => setting.name.charAt(0) === iconText);
-    if (!targetGem) return;
+    let targetGem: GemSetting | undefined;
 
-    // --- ロジック開始 ---
+    // A. Gemリンク内のテキストで特定（頭文字チェック不要・最優先）
+    const gemLink = el.closest('a[href*="/gem/"]');
+    if (gemLink) {
+      targetGem = findGemInText(gemLink.textContent || '', gemsWithImage);
+    }
 
-    // A. サイドバー内かどうか？
-    const isInSidebar = el.closest('mat-sidenav, nav, [role="navigation"], .sidenav-container');
-    
-    // B. 「最近のチャット」リスト内かどうか？ (いただいたHTMLのクラス名を使用)
-    const isInRecentList = el.closest('.bot-recent-chats, .bot-recent-chats-container');
-
-    // C. 近くに名前があるか探す（従来の方法）
-    let nameFoundNearby = false;
-    let parent = el.parentElement;
-    for (let i = 0; i < 7; i++) {
-      if (!parent) break;
-      if (parent.querySelectorAll('.bot-logo-text').length > 2) break; // 誤爆防止
-
-      if (parent.textContent && parent.textContent.includes(targetGem.name)) {
-        const textWithoutIcon = parent.textContent.replace(iconText, '');
-        if (textWithoutIcon.includes(targetGem.name)) {
-            nameFoundNearby = true;
-            break;
+    // B. 近くの親要素から名前を探す（頭文字フィルター付き）
+    if (!targetGem) {
+      const matchingGems = gemsWithImage.filter(s =>
+        s.name.charAt(0) === iconText || s.name.startsWith(iconText)
+      );
+      if (matchingGems.length > 0) {
+        let parent = el.parentElement;
+        for (let i = 0; i < 7; i++) {
+          if (!parent) break;
+          if (parent.querySelectorAll('.bot-logo-text').length > 2) break;
+          if (parent.textContent) {
+            targetGem = findGemInText(parent.textContent, matchingGems);
+            if (targetGem) break;
+          }
+          parent = parent.parentElement;
         }
       }
-      parent = parent.parentElement;
     }
 
-    // --- 適用判定 ---
+    // C. ページタイトルで照合（チャット画面用フォールバック）
+    if (!targetGem && pageTitle) {
+      const isInSidebar = el.closest('mat-sidenav, nav, [role="navigation"], .sidenav-container');
+      if (!isInSidebar) {
+        targetGem = gemsWithImage.find(s =>
+          pageTitle.includes(normalizeText(s.name)) &&
+          (s.name.charAt(0) === iconText || s.name.startsWith(iconText))
+        );
+      }
+    }
 
-    if (nameFoundNearby) {
-      // 1. 名前が横にある（サイドバーやヘッダー） -> 確実なので適用
+    if (targetGem) {
       applyAvatarStyle(el, targetGem.image);
-    } 
-    else if (isInRecentList) {
-      // 2. 「最近」リストの中にある場合
-      // 名前は横にないが、ページのタイトルがGem名と一致していれば適用
-      if (pageTitle && pageTitle.includes(targetGem.name)) {
-        applyAvatarStyle(el, targetGem.image);
+    }
+  });
+
+  // --- Pass 2: Gemリンク起点の置換（アイコンがリンク外にある場合） ---
+  document.querySelectorAll('a[href*="/gem/"]').forEach(link => {
+    const matchedGem = findGemInText(link.textContent || '', gemsWithImage);
+    if (!matchedGem) return;
+
+    let iconEl = link.querySelector('.bot-logo-text') as HTMLElement | null;
+
+    if (!iconEl) {
+      const parent = link.parentElement;
+      if (parent) {
+        iconEl = parent.querySelector('.bot-logo-text') as HTMLElement | null;
       }
     }
-    else if (!isInSidebar) {
-      // 3. その他の場所（チャット画面のヘッダーなど）で、名前が見つからなかった場合
-      // これもページタイトルと一致していれば適用の余地あり
-      if (pageTitle && pageTitle.includes(targetGem.name)) {
-         applyAvatarStyle(el, targetGem.image);
-      }
+
+    if (iconEl && !isProcessed(iconEl)) {
+      applyAvatarStyle(iconEl, matchedGem.image);
     }
   });
 };
@@ -125,20 +148,28 @@ const startEngine = async () => {
   const isEnabled = data.isEnabled ?? true;
   gemSettings = data.gemSettings ?? [];
 
-  if (!isEnabled) {
-    console.log('[GemAvatar] Disabled by user setting.');
-    return;
-  }
+  if (!isEnabled) return;
 
-  console.log('[GemAvatar] Context-Aware Engine v2 Started.');
   performReplacement();
 
   const observer = new MutationObserver(() => {
     performReplacement();
   });
-  
+
   observer.observe(document.body, { childList: true, subtree: true });
   setInterval(performReplacement, 1000);
 };
+
+// 設定変更を即時反映
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local') return;
+  if (changes.gemSettings) {
+    gemSettings = changes.gemSettings.newValue ?? [];
+    document.querySelectorAll(`[${PROCESSED_ATTR}]`).forEach(el => {
+      el.removeAttribute(PROCESSED_ATTR);
+    });
+    performReplacement();
+  }
+});
 
 startEngine();

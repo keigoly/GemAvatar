@@ -57,11 +57,12 @@
           <button id="btn-reload" class="reload-btn" data-i18n="btnReload">Update</button>
 
           <ul id="gem-list"></ul>
+          <input type="file" id="gem-icon-change-input" accept="image/*" class="hidden-file-input">
         </div>
       </main>
 
       <footer>
-        <p>v1.0.0</p>
+        <p>v1.1.0</p>
       </footer>
     </div>
 
@@ -146,17 +147,89 @@
 
         <div class="accordion">
           <div class="accordion-header">
-            <span data-i18n="storageLabel">Storage</span>
-            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            <div class="accordion-header-left">
+              <span data-i18n="storageLabel">Storage</span>
+              <span id="storage-sublabel" class="accordion-sublabel"></span>
+            </div>
+            <div class="accordion-header-icons">
+              <svg class="storage-warning-icon" viewBox="0 0 24 24" width="16" height="16">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#f59e0b" stroke="none"/>
+                <line x1="12" y1="10" x2="12" y2="14" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="17" r="1" fill="#fff"/>
+              </svg>
+              <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
           </div>
           <div class="accordion-body">
             <div class="storage-section">
-              <p class="storage-info" data-i18n="storageInfo">Export, import, or reset your settings.</p>
-              <div class="storage-actions">
-                <button id="btn-export" class="storage-btn export-btn" data-i18n="exportBtn">Export</button>
-                <button id="btn-import" class="storage-btn import-btn" data-i18n="importBtn">Import</button>
-                <button id="btn-reset" class="storage-btn reset-btn" data-i18n="resetBtn">Reset</button>
+              <div class="storage-bar-wrapper">
+                <div class="storage-bar">
+                  <div class="storage-bar-segment storage-bar-settings" id="storage-bar-settings"></div>
+                  <div class="storage-bar-segment storage-bar-other" id="storage-bar-other"></div>
+                </div>
               </div>
+              <div class="storage-breakdown">
+                <span id="storage-total"></span>
+                <span id="storage-settings-size"></span>
+                <span id="storage-other-size"></span>
+              </div>
+
+              <div class="storage-divider"></div>
+
+              <div class="storage-row">
+                <span class="storage-row-label" data-i18n="importLabel">Import Settings</span>
+                <button id="btn-import" class="storage-btn-pill">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span data-i18n="importBtn">Import</span>
+                </button>
+              </div>
+
+              <div class="storage-row">
+                <span class="storage-row-label" data-i18n="exportLabel">Export Settings</span>
+                <button id="btn-export" class="storage-btn-pill">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <span data-i18n="exportBtn">Export</span>
+                </button>
+              </div>
+
+              <div class="storage-divider"></div>
+
+              <div class="storage-row storage-row-with-desc">
+                <div class="storage-row-text">
+                  <span class="storage-row-label" data-i18n="resetLabel">Reset Settings</span>
+                  <span class="storage-row-desc" data-i18n="resetDesc">Restore settings to defaults.</span>
+                </div>
+                <button id="btn-reset" class="storage-btn-outline reset-outline">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                  <span data-i18n="resetBtn">Reset</span>
+                </button>
+              </div>
+
+              <div class="storage-row storage-row-with-desc">
+                <div class="storage-row-text">
+                  <span class="storage-row-label" data-i18n="clearLabel">Clear Storage</span>
+                  <span class="storage-row-desc" data-i18n="clearDesc">Delete all data permanently.</span>
+                </div>
+                <button id="btn-clear" class="storage-btn-outline clear-outline">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  <span data-i18n="clearBtn">Clear</span>
+                </button>
+              </div>
+
               <input type="file" id="import-file-input" accept=".json" class="hidden">
             </div>
           </div>
@@ -218,6 +291,19 @@
                 <div class="link-text">
                   <div class="link-title" data-i18n="linkSupportTitle">Support Developer</div>
                   <div class="link-desc" data-i18n="linkSupportDesc">Amazon Wishlist</div>
+                </div>
+                <div class="link-arrow">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+              </a>
+
+              <a href="https://keigoly.jp" target="_blank" class="link-item">
+                <div class="link-icon-wrapper">
+                  <span class="keigoly-logo"></span>
+                </div>
+                <div class="link-text">
+                  <div class="link-title" data-i18n="linkOfficialTitle">Official Site</div>
+                  <div class="link-desc" data-i18n="linkOfficialDesc">keigoly.jp</div>
                 </div>
                 <div class="link-arrow">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
